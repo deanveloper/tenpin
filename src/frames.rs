@@ -1,13 +1,10 @@
-
 /// This represents a frame on a scorecard.
 pub struct Frame<'a> {
-    bowls: [Option<u8>; 2],
-    bonus: [Option<&'a u8>; 2],
+    pub bowls: [Option<u8>; 2],
+    pub bonus: [Option<&'a u8>; 2],
 }
 
-
 impl Frame<'_> {
-
     /// Returns true if both bowls for this frame have been bowled, and not all pins were knocked down.
     pub fn is_open(&self) -> bool {
         if let (Some(b1), Some(b2)) = (self.bowls[0], self.bowls[1]) {
