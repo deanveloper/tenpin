@@ -1,42 +1,66 @@
 
-pub enum Frame<'a> {
-    Empty,
-    Unfinished(u8),
-    Open(u8, u8),
-    Spare(u8, &'a u8),
-    Strike(&'a u8, &'a u8),
+/// This represents a frame on a scorecard.
+pub struct Frame<'a> {
+    bowls: [Option<u8>; 2],
+    bonus: [Option<&'a u8>; 2],
 }
 
+
 impl Frame<'_> {
-    pub fn get_bowls(&self) -> (u8, u8) {
-        return match self {
-            Frame::Empty => (0, 0),
-            Frame::Unfinished(bowl) => (*bowl, 0),
-            Frame::Open(b1, b2) => (*b1, *b2),
-            Frame::Spare(b1, _) => (*b1, 10 - *b1),
-            Frame::Strike(_, _) => (10, 0),
-        };
-    }
 
-    pub fn get_bonus(&self) -> (Option<&u8>, Option<&u8>) {
-        return match self {
-            Frame::Empty => (Option::None, Option::None),
-            Frame::Unfinished(_) => (Option::None, Option::None),
-            Frame::Open(_, _) => (Option::None, Option::None),
-            Frame::Spare(_, bonus) => (Option::Some(bonus), Option::None),
-            Frame::Strike(bon1, bon2) => (Option::Some(bon1), Option::Some(bon2)),
-        };
-    }
-
-    pub fn get_points(&self) -> u8 {
-        let bowls = self.get_bowls();
-        let bonus = self.get_bonus();
-        let mut points = bowls.0 + bowls.1;
-        if let Option::Some(a) = bonus.0 {
-            points += *a
+    /// Returns true if both bowls for this frame have been bowled, and not all pins were knocked down.
+    pub fn is_open(&self) -> bool {
+        if let (Some(b1), Some(b2)) = (self.bowls[0], self.bowls[1]) {
+            b1 + b2 != 10
+        } else {
+            false
         }
-        if let Option::Some(a) = bonus.1 {
-            points += *a
+    }
+
+    /// Returns true if the first bowl knocked down 10 pins.
+    pub fn is_strike(&self) -> bool {
+        if let Some(b) = self.bowls[0] {
+            b == 10
+        } else {
+            false
+        }
+    }
+
+    pub fn is_spare(&self) -> bool {
+        if let (Some(b1), Some(b2)) = (self.bowls[0], self.bowls[1]) {
+            b1 + b2 == 10 && b2 != 0
+        } else {
+            false
+        }
+    }
+
+    pub fn is_complete(&self) -> bool {
+        if let Some(b1) = self.bowls[0] {
+            if b1 == 10 {
+                self.bonus[0].is_some() && self.bonus[1].is_some()
+            } else if let Some(b2) = self.bowls[1] {
+                if b1 + b2 == 10 {
+                    self.bonus[0].is_some()
+                } else {
+                    true
+                }
+            } else {
+                false
+            }
+        } else {
+            false
+        }
+    }
+
+    /// Returns the number of points that this frame has scored so far.
+    /// Should not be displayed on a scorecard until [`is_complete()`] returns true.
+    pub fn get_points(&self) -> u8 {
+        let mut points = self.bowls[0].unwrap_or(0) + self.bowls[1].unwrap_or(0);
+        if let Some(a) = self.bonus[0] {
+            points += *a;
+        }
+        if let Some(a) = self.bonus[1] {
+            points += *a;
         }
         points
     }
