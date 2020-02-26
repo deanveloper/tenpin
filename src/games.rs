@@ -1,16 +1,57 @@
 
 use crate::frames::Frame;
 
+pub struct Game<'a> {
+    pub turn: usize,
+    pub bowlers: Vec<Bowler<'a>>,
+}
+
+impl<'a> Game<'a> {
+
+    /// Performs a bowl in a game.
+    /// 
+    /// The "next bowl" is the first incomplete frame. Return value
+    /// is success, which will be true unless there is some kind of
+    /// memory error, or if the game is already completed.
+    pub fn bowl(&'a mut self, score: u8) -> bool {
+
+        let bowler = &self.bowlers[self.turn];
+
+        let mut frame: Option<&Frame> = None;
+        for each in bowler.frames.iter() {
+            if !each.is_bowled() {
+                frame = Some(each);
+                break;
+            }
+        }
+        if frame.is_none() {
+            return false;
+        }
+
+        let frame = frame.unwrap();
+        let bowled = frame.is_bowled();
+
+        let bowler = &mut self.bowlers[self.turn];
+        let success = bowler.bowl(score);
+
+        if success && bowled {
+            self.turn += 1;
+        }
+
+        success
+    }
+}
+
 /// A bowler is someone who bowls.
 pub struct Bowler<'a> {
-    frames: [Frame<'a>; 10],
+    pub frames: [Frame<'a>; 10],
 
-    bowls: [Option<u8>; 21],
+    pub bowls: [Option<u8>; 21],
 }
 
 impl<'a> Bowler<'a> {
 
-    /// Resets a bowler
+    /// Resets/initializes a bowler
     pub fn init(&'a mut self) {
         *self = Bowler {
             frames: [Frame { pins: [&None; 3] }; 10],
@@ -68,6 +109,8 @@ impl<'a> Bowler<'a> {
     /// will be automatically calculated.
     pub fn edit(&'a mut self, frame_index: usize, pins: [Option<u8>; 2]) {
         
+        // really stupid workaround so that i can have
+        // two mutable borrows on separate array indices.
         let (head, tail) = self.frames.split_at_mut(frame_index);
         let mut frame = &mut tail[0];
 
