@@ -47,7 +47,7 @@ impl Frame<'_> {
 
     pub fn is_bowled(&self) -> bool {
         match (self.pins[0], self.pins[1]) {
-            (Some(b1), Some(b2)) => true,
+            (Some(_), Some(_)) => true,
             (Some(b1), None) => *b1 == 10,
             _ => false,
         }
@@ -55,7 +55,7 @@ impl Frame<'_> {
 
     pub fn display_points(&self) -> bool {
         match (self.pins[0], self.pins[1], self.pins[2]) {
-            (Some(b1), Some(b2), Some(b3)) => true,
+            (Some(_), Some(_), Some(_)) => true,
             (Some(b1), Some(b2), None) => *b1 + *b2 != 10,
             _ => false,
         }
