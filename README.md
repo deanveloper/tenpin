@@ -1,4 +1,4 @@
-This is my first real rust library. Being as such, I am not sure what the best coding practices in Rust are, so hopefully this works well. Pull requests are welcome!
+This is my first (real) Rust library. Being as such, I am not sure what the best coding practices in Rust are, so hopefully this works well. Pull requests are welcome!
 
 # Tenpin
 
